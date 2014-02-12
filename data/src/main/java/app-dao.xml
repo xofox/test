@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+		http://www.springframework.org/schema/task
+    	http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+
+	<bean id="propertyConfigurer" 	class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<!-- 标准配置 -->
+				<value>classpath:/config/db.properties</value>
+			</list>
+		</property>
+		<property name="fileEncoding">
+			<value>UTF-8</value>
+		</property>
+	</bean>
+	
+	<bean id="dataSource" class="com.jolbox.bonecp.BoneCPDataSource" destroy-method="close">
+		<property name="driverClass" value="${db.driver}" />
+		<property name="jdbcUrl" value="${db.url}" />
+		<property name="username" value="${db.uid}" />
+		<property name="password" value="${db.pwd}" />
+		<property name="idleConnectionTestPeriod" value="60" />
+		<property name="idleMaxAge" value="240" />
+		<property name="maxConnectionsPerPartition" value="5" />
+		<property name="minConnectionsPerPartition" value="2" />
+		<property name="partitionCount" value="3" />
+		<property name="acquireIncrement" value="5" />
+		<property name="statementsCacheSize" value="100" />
+		<property name="releaseHelperThreads" value="3" />
+	</bean>
+	
+	 <bean id="sessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+        <property name="dataSource"><ref local="dataSource"/></property>
+        <property name="packagesToScan" value="org.nbrc.mobile" />
+        <property name="hibernateProperties">
+        <props>
+            <prop key="hibernate.dialect">${hibernate.dialect}</prop>
+            <prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+			<prop key="hibernate.hbm2ddl.auto">${hibernate.hbm2ddl.auto}</prop>
+			<prop key="hibernate.hbm2ddl.schemaUpdate">true</prop>
+        </props>
+        </property>
+    </bean>
+		<tx:annotation-driven/>
+    <bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+        <property name="sessionFactory"><ref local="sessionFactory"/></property>
+    </bean>
+    <context:component-scan base-package="org.nbrc.mobile">    
+       <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>   
+    </context:component-scan>
+
+</beans>
